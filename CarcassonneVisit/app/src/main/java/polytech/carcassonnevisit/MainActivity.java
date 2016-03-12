@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     return new MapFragment();
                 case 1:
-                    return new MapFragment();
+                    return new RadarFragment();
             }
 
             return null;
@@ -91,12 +91,24 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            // Generate title based on item position
             return tabTitles[position];
         }
 
         public View getTabView(int position) {
-            View tab = LayoutInflater.from(MainActivity.this).inflate(R.layout.custom_tab, null);
+            int layoutID;
+            switch (position) {
+                case 0:
+                    layoutID = R.layout.map_tab;
+                    break;
+                case 1:
+                    layoutID = R.layout.radar_tab;
+                    break;
+                default:
+                    layoutID = R.layout.map_tab;
+                    break;
+            }
+
+            View tab = LayoutInflater.from(MainActivity.this).inflate(layoutID, null);
             TextView tv = (TextView) tab.findViewById(R.id.custom_text);
             tv.setText(tabTitles[position]);
             return tab;
