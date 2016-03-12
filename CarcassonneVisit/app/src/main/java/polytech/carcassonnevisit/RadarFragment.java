@@ -53,12 +53,7 @@ public class RadarFragment extends SupportMapFragment implements
     private void setUpMap() {
 
         mMap.setMyLocationEnabled(true);
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-
-
-        mMap.setMyLocationEnabled(true);
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setMapToolbarEnabled(false);
 
         Marker hamburg = mMap.addMarker(new MarkerOptions().position(HAMBURG)
