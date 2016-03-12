@@ -1,4 +1,4 @@
-package polytech.carcassonnevisit;
+package polytech.carcassonnevisit.fragment;
 
 import android.util.Log;
 
@@ -10,6 +10,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import polytech.carcassonnevisit.R;
 
 public class MapFragment extends SupportMapFragment implements
         OnMapReadyCallback {
