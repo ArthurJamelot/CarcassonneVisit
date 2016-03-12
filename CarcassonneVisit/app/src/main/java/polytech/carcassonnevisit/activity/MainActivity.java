@@ -1,4 +1,4 @@
-package polytech.carcassonnevisit;
+package polytech.carcassonnevisit.activity;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -9,16 +9,21 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.widget.TextView;
+import polytech.carcassonnevisit.fragment.MapFragment;
+import polytech.carcassonnevisit.R;
+import polytech.carcassonnevisit.fragment.RadarFragment;
 
-public class MainActivity extends AppCompatActivity
-{
+
+public class MainActivity extends AppCompatActivity {
+
+    private MapFragment mapFragment;
+    private RadarFragment radarFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -30,16 +35,15 @@ public class MainActivity extends AppCompatActivity
         //Better way of doing it: create an AsyncTask
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
+        this.mapFragment = new MapFragment();
+        this.radarFragment = new RadarFragment();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Get the ViewPager and set it's PagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), MainActivity.this);
         viewPager.setAdapter(pagerAdapter);
 
-        // Give the TabLayout the ViewPager
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
 
@@ -49,12 +53,13 @@ public class MainActivity extends AppCompatActivity
             TabLayout.Tab tab = tabLayout.getTabAt(i);
             tab.setCustomView(pagerAdapter.getTabView(i));
         }
+
+        //startService(new Intent(this, LocatorService.class));
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -72,7 +77,6 @@ public class MainActivity extends AppCompatActivity
 
     class PagerAdapter extends FragmentPagerAdapter
     {
-
         String tabTitles[] = new String[] { "Map", "Radar" };
         Context context;
 
@@ -92,9 +96,9 @@ public class MainActivity extends AppCompatActivity
 
             switch (position) {
                 case 0:
-                    return new MapFragment();
+                    return mapFragment;
                 case 1:
-                    return new RadarFragment();
+                    return radarFragment;
             }
 
             return null;
