@@ -5,6 +5,12 @@ import android.util.Log;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -54,19 +60,39 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         map.getUiSettings().setMapToolbarEnabled(false);
 
         //Markers
-        addAllMarkers(map);
+        addAllHotspots(map);
 
         //Camera
         /*map.moveCamera(CameraUpdateFactory.newLatLngZoom(QUENTIN, 15));
         map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);*/
     }
 
-    private void addAllMarkers(GoogleMap map)
+    private void addAllHotspots(GoogleMap map)
     {
-        getAllJSONMarkers();
+        JSONArray hotspots = getAllHotspots();
+
+        if(hotspots == null)
+        {
+            Log.d("Debug", "Hotspots est null");
+            return;
+        }
+
+        for(int i = 0; i < hotspots.length(); i++)
+        {
+            try
+            {
+                JSONObject hotspot = hotspots.getJSONObject(i);
+                map.addMarker(new MarkerOptions()
+                                .position(new LatLng(hotspot.getDouble("latitude"), hotspot.getDouble("longitude")))
+                                .title(hotspot.getString("id"))
+                );
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void getAllJSONMarkers()
+    private JSONArray getAllHotspots()
     {
         HttpURLConnection urlConnection = null;
         String stringResult = null;
@@ -77,6 +103,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             urlConnection = (HttpURLConnection) url.openConnection();
             input = urlConnection.getInputStream();
             stringResult = readStream(input);
+            Log.d("Debug", "Valeur retournée par le script: " + stringResult);
         }
 
         catch (Exception e)
@@ -88,28 +115,42 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         {
             if (urlConnection != null)
                 urlConnection.disconnect();
-
-            if(!stringResult.isEmpty())
-            {
-                
-            }
         }
 
+        JSONArray JSONResult = null;
+        try {
+            JSONResult = new JSONArray(stringResult);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
+        if(!stringResult.isEmpty())
+        {
+            Log.d("Debug", "On renvoit le JSON");
+            return JSONResult;
+        }
+        else
+            return null;
     }
 
     private String readStream(InputStream input)
     {
-        try {
+        try
+        {
             ByteArrayOutputStream bo = new ByteArrayOutputStream();
             int i = input.read();
-            while(i != -1) {
+            bo.write('[');
+            while(i != -1)
+            {
                 bo.write(i);
                 i = input.read();
             }
-            Log.d("Debug", "Valeur retournée par le script: " + bo.toString("UTF-8"));
+            bo.write(']');
             return bo.toString("UTF-8");
-        } catch (IOException e) {
+        }
+
+        catch (IOException e)
+        {
             return "";
         }
     }
