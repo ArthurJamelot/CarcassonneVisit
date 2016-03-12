@@ -6,18 +6,12 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-<<<<<<< HEAD:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/MapFragment.java
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-=======
-import polytech.carcassonnevisit.R;
 
-public class MapFragment extends SupportMapFragment implements
-        OnMapReadyCallback {
->>>>>>> ef1b9d0... Create locator service:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/fragment/MapFragment.java
 
 public class MapFragment extends SupportMapFragment implements OnMapReadyCallback
 {

@@ -1,7 +1,6 @@
 package polytech.carcassonnevisit.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.TabLayout;
@@ -10,25 +9,19 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.widget.TextView;
-
-<<<<<<< HEAD:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/MainActivity.java
-public class MainActivity extends AppCompatActivity
-{
-=======
 import polytech.carcassonnevisit.fragment.MapFragment;
 import polytech.carcassonnevisit.R;
 import polytech.carcassonnevisit.fragment.RadarFragment;
-import polytech.carcassonnevisit.service.LocatorService;
 
-public class MainActivity extends AppCompatActivity {
->>>>>>> ef1b9d0... Create locator service:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/activity/MainActivity.java
+
+public class MainActivity extends AppCompatActivity
+{
 
     private MapFragment mapFragment;
     private RadarFragment radarFragment;
@@ -39,15 +32,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-<<<<<<< HEAD:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/MainActivity.java
         //Change of thread permission policy in order to avoid getting killed
         //Better way of doing it: create an AsyncTask
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-=======
+
         this.mapFragment = new MapFragment();
         this.radarFragment = new RadarFragment();
->>>>>>> ef1b9d0... Create locator service:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/activity/MainActivity.java
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -59,13 +50,9 @@ public class MainActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
 
-<<<<<<< HEAD:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/MainActivity.java
         // Iterate over all tabs and set the custom view
         for (int i = 0; i < tabLayout.getTabCount(); i++)
         {
-=======
-        for (int i = 0; i < tabLayout.getTabCount(); i++) {
->>>>>>> ef1b9d0... Create locator service:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/activity/MainActivity.java
             TabLayout.Tab tab = tabLayout.getTabAt(i);
             tab.setCustomView(pagerAdapter.getTabView(i));
         }
@@ -84,27 +71,17 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item)
     {
         int id = item.getItemId();
-<<<<<<< HEAD:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/MainActivity.java
 
         if (id == R.id.action_settings)
             return true;
 
-=======
-        if (id == R.id.action_settings) {
-            return true;
-        }
->>>>>>> ef1b9d0... Create locator service:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/activity/MainActivity.java
         return super.onOptionsItemSelected(item);
     }
 
     class PagerAdapter extends FragmentPagerAdapter
     {
 
-<<<<<<< HEAD:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/MainActivity.java
         String tabTitles[] = new String[] { "Map", "Radar" };
-=======
-        String tabTitles[] = new String[] { "Tab One", getString(R.string.tabRadar) };
->>>>>>> ef1b9d0... Create locator service:CarcassonneVisit/app/src/main/java/polytech/carcassonnevisit/activity/MainActivity.java
         Context context;
 
         public PagerAdapter(FragmentManager fm, Context context)
