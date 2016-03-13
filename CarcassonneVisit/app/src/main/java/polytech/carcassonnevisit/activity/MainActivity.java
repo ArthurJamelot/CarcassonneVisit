@@ -1,8 +1,8 @@
 package polytech.carcassonnevisit.activity;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -25,15 +25,23 @@ import polytech.carcassonnevisit.fragment.RadarFragment;
 import polytech.carcassonnevisit.observer.LocatorObserver;
 import polytech.carcassonnevisit.service.LocatorService;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity
+{
 
     private MapFragment mapFragment;
     private RadarFragment radarFragment;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Change of thread permission policy in order to avoid getting killed
+        //Better way of doing it: create an AsyncTask
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         this.mapFragment = new MapFragment();
         this.radarFragment = new RadarFragment();
@@ -42,14 +50,15 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        PagerAdapter pagerAdapter =
-                new PagerAdapter(getSupportFragmentManager(), MainActivity.this);
+        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager(), MainActivity.this);
         viewPager.setAdapter(pagerAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
 
-        for (int i = 0; i < tabLayout.getTabCount(); i++) {
+        // Iterate over all tabs and set the custom view
+        for (int i = 0; i < tabLayout.getTabCount(); i++)
+        {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
             tab.setCustomView(pagerAdapter.getTabView(i));
         }
@@ -68,20 +77,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+
+        if (id == R.id.action_settings)
             return true;
-        }
+
         return super.onOptionsItemSelected(item);
     }
 
-    class PagerAdapter extends FragmentPagerAdapter {
+    class PagerAdapter extends FragmentPagerAdapter
+    {
 
-        String tabTitles[] = new String[] { "Tab One", getString(R.string.tabRadar) };
+        String tabTitles[] = new String[] { "Map", "Radar" };
         Context context;
 
-        public PagerAdapter(FragmentManager fm, Context context) {
+        public PagerAdapter(FragmentManager fm, Context context)
+        {
             super(fm);
             this.context = context;
         }
