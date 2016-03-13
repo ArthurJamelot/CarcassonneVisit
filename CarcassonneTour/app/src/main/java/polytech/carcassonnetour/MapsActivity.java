@@ -17,16 +17,24 @@
 package polytech.carcassonnetour;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -34,35 +42,57 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MapsActivity extends AppCompatActivity
         implements
         OnMyLocationButtonClickListener,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
-        LocationListener{
+        LocationListener,
+        GoogleMap.OnMarkerClickListener {
 
+    private static final String URL_ALL_HOTSPOTS = "http://cvisit.gauchoux.com/media/com_carcassonne/ajax/getAllPoints.php";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final int ZOOM = 18;
+    private static final int ZOOM = 17;
 
     private boolean mPermissionDenied = false;
 
     private GoogleMap mMap;
-    LocationManager locationManager;
+    private LocationManager locationManager;
+
+    private List<Hotspot> hotspots;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.maps_layout);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        this.hotspots = getAllHotspots();
     }
 
     @Override
@@ -70,7 +100,10 @@ public class MapsActivity extends AppCompatActivity
         mMap = map;
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setAllGesturesEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.setOnMarkerClickListener(this);
         enableMyLocation();
+        showNearbyHotspots();
     }
 
     private void enableMyLocation() {
@@ -127,6 +160,22 @@ public class MapsActivity extends AppCompatActivity
                             .getLongitude()))
                     .zoom(ZOOM).build();
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+            checkHotspotProximity(newLocation);
+        }
+    }
+
+    public void checkHotspotProximity(Location userLocation) {
+        for (Hotspot hotspot : hotspots) {
+            Location hotspotLocation = new Location(hotspot.getName());
+            hotspotLocation.setLatitude(hotspot.getLatitude());
+            hotspotLocation.setLongitude(hotspot.getLongitude());
+            int dist = (int) userLocation.distanceTo(hotspotLocation);
+            Log.d("hééé", hotspot.getName() + " : " + dist + " pour " + hotspot.getRadius());
+            if (!hotspot.isAlreadySee() && dist <= hotspot.getRadius()) {
+                showHotspotPopup(hotspot.getName(), hotspot.getText());
+                hotspot.setAlreadySee(true);
+                break;
+            }
         }
     }
 
@@ -143,6 +192,78 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    private void showNearbyHotspots() {
+        for (Hotspot hotspot : this.hotspots) {
+            this.mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(hotspot.getLatitude(), hotspot.getLongitude()))
+                    .title(hotspot.getName())
+                    .snippet(hotspot.getText())
+            );
+        }
+    }
+
+    private List<Hotspot> getAllHotspots() {
+        HttpURLConnection urlConnection = null;
+        String stringResult = null;
+        InputStream input;
+
+        try {
+            URL url = new URL(URL_ALL_HOTSPOTS);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            input = urlConnection.getInputStream();
+            stringResult = readStream(input);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null)
+                urlConnection.disconnect();
+        }
+
+        List<Hotspot> hotspotList = new ArrayList<>();
+        try {
+            JSONArray hotspotsJSON = new JSONArray(stringResult);
+            for (int i = 1; i < hotspotsJSON.length(); i++) {
+                JSONObject hotspotJSON = hotspotsJSON.getJSONObject(i);
+                hotspotList.add(new Hotspot("Titre " + i, "Description", hotspotJSON.getDouble("latitude"), hotspotJSON.getDouble("longitude"), 70));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return hotspotList;
+    }
+
+    private String readStream(InputStream input) {
+        try {
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            int i = input.read();
+            while(i != -1) {
+                bo.write(i);
+                i = input.read();
+            }
+            return bo.toString("UTF-8");
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        showHotspotPopup(marker.getTitle(), marker.getSnippet());
+        return true;
+    }
+
+    public void showHotspotPopup(String name, String text) {
+        new AlertDialog.Builder(this)
+                .setTitle(name)
+                .setMessage(text)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // continue with delete
+                    }
+                })
+                .show();
     }
 
 }
