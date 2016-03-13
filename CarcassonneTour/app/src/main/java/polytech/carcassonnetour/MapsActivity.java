@@ -35,7 +35,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -70,6 +73,8 @@ public class MapsActivity extends AppCompatActivity
     private static final String URL_ALL_HOTSPOTS = "http://cvisit.gauchoux.com/media/com_carcassonne/ajax/getAllPoints.php";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int ZOOM = 17;
+    private static final int RADIUS = 50;
+    private static final int WAIT = 3000;
 
     private boolean mPermissionDenied = false;
 
@@ -78,10 +83,19 @@ public class MapsActivity extends AppCompatActivity
 
     private List<Hotspot> hotspots;
 
+    private ImageView overlay;
+    private boolean firstCenter;
+    private boolean autoCenter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.maps_layout);
+
+        overlay = (ImageView) findViewById(R.id.overlay);
+        overlay.setVisibility(View.INVISIBLE);
+        firstCenter = true;
+        autoCenter = false;
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -98,8 +112,6 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-        mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        mMap.getUiSettings().setAllGesturesEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setOnMarkerClickListener(this);
         enableMyLocation();
@@ -154,13 +166,16 @@ public class MapsActivity extends AppCompatActivity
 
     public void onLocationChanged(Location location2) {
         Location newLocation = mMap.getMyLocation();
-        if (newLocation != null) {
+        if (newLocation != null && (firstCenter || autoCenter)) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(newLocation.getLatitude(), newLocation
                             .getLongitude()))
                     .zoom(ZOOM).build();
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             checkHotspotProximity(newLocation);
+            if (firstCenter) {
+                firstCenter = false;
+            }
         }
     }
 
@@ -226,12 +241,26 @@ public class MapsActivity extends AppCompatActivity
             JSONArray hotspotsJSON = new JSONArray(stringResult);
             for (int i = 1; i < hotspotsJSON.length(); i++) {
                 JSONObject hotspotJSON = hotspotsJSON.getJSONObject(i);
-                hotspotList.add(new Hotspot(
-                        hotspotJSON.getString("tag"),
-                        hotspotJSON.getString("textuel"),
-                        hotspotJSON.getDouble("latitude"),
-                        hotspotJSON.getDouble("longitude"),
-                        50));
+                String text = hotspotJSON.getString("textuel");
+                String[] parts = text.split(";");
+                if (parts.length == 2) {
+                    hotspotList.add(new Hotspot(
+                            parts[0],
+                            parts[1],
+                            Tag.valueOf(hotspotJSON.getString("tag")),
+                            hotspotJSON.getDouble("latitude"),
+                            hotspotJSON.getDouble("longitude"),
+                            RADIUS));
+                } else {
+                    hotspotList.add(new Hotspot(
+                            Tag.valueOf(hotspotJSON.getString("tag")).toString(),
+                            text,
+                            Tag.valueOf(hotspotJSON.getString("tag")),
+                            hotspotJSON.getDouble("latitude"),
+                            hotspotJSON.getDouble("longitude"),
+                            RADIUS));
+                }
+
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -269,6 +298,22 @@ public class MapsActivity extends AppCompatActivity
                     }
                 })
                 .show();
+    }
+
+    public void toggleOnClickListener(View view) {
+        ToggleButton toggleButton = (ToggleButton) view;
+        if (toggleButton.isChecked()) { // Radar
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.getUiSettings().setAllGesturesEnabled(false);
+            overlay.setVisibility(View.VISIBLE);
+            autoCenter = true;
+            Toast.makeText(this, R.string.waitALittle, WAIT).show();
+        } else { // Carte
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            mMap.getUiSettings().setAllGesturesEnabled(true);
+            overlay.setVisibility(View.INVISIBLE);
+            autoCenter = false;
+        }
     }
 
 }
