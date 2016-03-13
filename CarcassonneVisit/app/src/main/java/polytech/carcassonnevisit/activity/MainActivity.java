@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,9 +17,12 @@ import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 import polytech.carcassonnevisit.fragment.MapFragment;
 import polytech.carcassonnevisit.R;
 import polytech.carcassonnevisit.fragment.RadarFragment;
+import polytech.carcassonnevisit.observer.LocatorObserver;
 import polytech.carcassonnevisit.service.LocatorService;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,9 +54,12 @@ public class MainActivity extends AppCompatActivity {
             tab.setCustomView(pagerAdapter.getTabView(i));
         }
 
-        //startService(new Intent(this, LocatorService.class));
+        Intent intent = new Intent(this, LocatorService.class);
+        ArrayList<LocatorObserver> locatorObservers = new ArrayList();
+        locatorObservers.add(this.radarFragment);
+        intent.putExtra("observers", locatorObservers);
+        startService(intent);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

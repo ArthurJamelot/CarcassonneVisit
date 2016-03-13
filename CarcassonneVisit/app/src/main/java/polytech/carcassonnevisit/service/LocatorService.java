@@ -14,15 +14,20 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import polytech.carcassonnevisit.observer.LocatorObserver;
 
 public class LocatorService extends Service implements LocationListener, SensorEventListener {
 
     private final String PROVIDER = LocationManager.GPS_PROVIDER;
-    private final int MIN_DISTANCE = 50;
-    private final int REFRESH_DELAY = 2000;
+    private final int MIN_DISTANCE = 1;
+    private final int REFRESH_DELAY = 50;
 
     private LocationManager locationManager;
     private SensorManager sensorManager;
@@ -31,19 +36,13 @@ public class LocatorService extends Service implements LocationListener, SensorE
     private float[] gravity;
     private float[] geomagnetic;
 
-    private LocatorObserver observer;
-
-    public LocatorService(LocatorObserver observer) {
-        this.observer = observer;
-    }
+    private List<LocatorObserver> observers;
 
     @Override
     public void onCreate() {
-
         this.locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (canUseLocationManager()) {
-            this.observer.notifyLocation(this.locationManager.getLastKnownLocation(PROVIDER));
             this.locationManager.requestLocationUpdates(PROVIDER, 0, 0, this);
 
             // Initialize azimuth observer
@@ -61,9 +60,26 @@ public class LocatorService extends Service implements LocationListener, SensorE
         stopSelf();
     }
 
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public void onStart(Intent intent, int startId) {
+        super.onStart(intent, startId);
+        Log.d("coucou", "ta soeur");
+        this.observers = (ArrayList<LocatorObserver>) intent.getSerializableExtra("observers");
+        Log.d("coucou", "ta soeur2");
+        if (canUseLocationManager()) {
+            Log.d("coucou", "" + this.observers.size());
+            for (LocatorObserver observer : this.observers) {
+                Log.d("coucou", "ta soeur4");
+                observer.notifyLocation(this.locationManager.getLastKnownLocation(PROVIDER));
+            }
+            Log.d("coucou", "ta soeur5");
+        }
     }
 
     public boolean canUseLocationManager() {
@@ -76,7 +92,9 @@ public class LocatorService extends Service implements LocationListener, SensorE
      * @param location The new location of the device
      */
     public void onLocationChanged(Location location) {
-        this.observer.notifyLocation(location);
+        for (LocatorObserver observer : this.observers) {
+            observer.notifyLocation(location);
+        }
         if (canUseLocationManager()) {
             this.locationManager.requestLocationUpdates(PROVIDER, REFRESH_DELAY, MIN_DISTANCE, this);
         }

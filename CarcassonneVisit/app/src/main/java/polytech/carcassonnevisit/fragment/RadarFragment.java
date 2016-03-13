@@ -1,18 +1,23 @@
 package polytech.carcassonnevisit.fragment;
 
 import android.location.Location;
+import android.util.Log;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.Serializable;
+
 import polytech.carcassonnevisit.observer.LocatorObserver;
 
 public class RadarFragment extends SupportMapFragment implements
-        OnMapReadyCallback, LocatorObserver {
+        OnMapReadyCallback, LocatorObserver, Serializable {
 
     private final int ZOOM_FACTOR = 20;
 
@@ -36,6 +41,7 @@ public class RadarFragment extends SupportMapFragment implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
+        MapsInitializer.initialize(this.getContext());
         setUpMapSettings();
     }
 
@@ -55,11 +61,19 @@ public class RadarFragment extends SupportMapFragment implements
 
     @Override
     public void notifyLocation(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        CameraUpdate center = CameraUpdateFactory.newLatLng(latLng);
-        CameraUpdate zoom = CameraUpdateFactory.zoomTo(ZOOM_FACTOR);
-        map.moveCamera(center);
-        map.animateCamera(zoom);
+        Log.d("hééé", "Coucou");
+        while (getMap() == null) {
+            Log.d("hééé", "Attente");
+        }
+
+            Log.d("hééé", "Vrai coucou");
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            CameraUpdate center = CameraUpdateFactory.newLatLng(latLng);
+            CameraUpdate zoom = CameraUpdateFactory.zoomTo(ZOOM_FACTOR);
+            map.moveCamera(center);
+            map.animateCamera(zoom, 2000, null);
+            Log.d("hééé", "Fin coucou");
+
     }
 
 }
