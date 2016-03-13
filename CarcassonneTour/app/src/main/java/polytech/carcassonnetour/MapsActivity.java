@@ -226,7 +226,12 @@ public class MapsActivity extends AppCompatActivity
             JSONArray hotspotsJSON = new JSONArray(stringResult);
             for (int i = 1; i < hotspotsJSON.length(); i++) {
                 JSONObject hotspotJSON = hotspotsJSON.getJSONObject(i);
-                hotspotList.add(new Hotspot("Titre " + i, "Description", hotspotJSON.getDouble("latitude"), hotspotJSON.getDouble("longitude"), 70));
+                hotspotList.add(new Hotspot(
+                        hotspotJSON.getString("tag"),
+                        hotspotJSON.getString("textuel"),
+                        hotspotJSON.getDouble("latitude"),
+                        hotspotJSON.getDouble("longitude"),
+                        50));
             }
         } catch (JSONException e) {
             e.printStackTrace();
